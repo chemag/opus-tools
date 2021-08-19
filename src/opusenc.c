@@ -140,6 +140,7 @@ static void usage(void)
   printf(" --bitrate n.nnn    Set target bitrate in kbit/s (6-256/channel)\n");
   printf(" --bandwidth <bw>   Set audio bandwidth (NB, MB, WB, SWB, FB)\n");
   printf(" --application <app> Set audio application (voip, audio, lowdelay)\n");
+  printf(" --force-mode <mode> Set audio mode (silk, hybrid, celt)\n");
   printf(" --vbr              Use variable bitrate encoding (default)\n");
   printf(" --cvbr             Use constrained variable bitrate encoding\n");
   printf(" --hard-cbr         Use hard constant bitrate encoding\n");
@@ -380,6 +381,7 @@ int main(int argc, char **argv)
     {"speech", no_argument, NULL, 0},
     {"dtx",no_argument,NULL, 0},
     {"inbandfec",no_argument,NULL, 0},
+    {"force-mode", required_argument, NULL, 0},
     {"comp", required_argument, NULL, 0},
     {"complexity", required_argument, NULL, 0},
     {"framesize", required_argument, NULL, 0},
@@ -451,6 +453,7 @@ int main(int argc, char **argv)
   int                with_cvbr=0;
   int                with_dtx=0;
   int                with_inbandfec=0;
+  int                force_mode=OPUS_AUTO;
   int                signal_type=OPUS_AUTO;
   int                expect_loss=0;
   int                complexity=10;
@@ -586,6 +589,17 @@ int main(int argc, char **argv)
           with_dtx=1;
         } else if (strcmp(optname, "inbandfec")==0) {
           with_inbandfec=1;
+        } else if (strcmp(optname, "force-mode")==0) {
+          if (strcmp(optarg, "silk")==0) {
+            force_mode = MODE_SILK_ONLY;
+          } else if (strcmp(optarg, "hybrid")==0) {
+            force_mode = MODE_HYBRID;
+          } else if (strcmp(optarg, "celt")==0) {
+            force_mode = MODE_CELT_ONLY;
+          } else {
+            fatal("Unknown mode %s. Supported are silk, hybrid, celt.\n",
+                  optarg);
+          }
         } else if (strcmp(optname, "help")==0) {
           usage();
           exit(0);
@@ -1049,6 +1063,12 @@ int main(int argc, char **argv)
     if (ret != OPE_OK) {
       fatal("Error: OPUS_SET_INBAND_FEC %d failed: %s\n",
         with_inbandfec, ope_strerror(ret));
+    }
+  }
+  if (force_mode!=OPUS_AUTO) {
+    ret = ope_encoder_ctl(enc, OPUS_SET_FORCE_MODE(force_mode));
+    if (ret != OPE_OK) {
+      fatal("Error: OPUS_SET_FORCE_MODE %d failed: %s\n", force_mode, ope_strerror(ret));
     }
   }
   ret = ope_encoder_ctl(enc, OPUS_SET_COMPLEXITY(complexity));
