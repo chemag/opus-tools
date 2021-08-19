@@ -317,6 +317,12 @@ static void packet_callback(void *user_data, const unsigned char *packet_ptr, op
   (void)flags;
 }
 
+#define MODE_SILK_ONLY          1000
+#define MODE_HYBRID             1001
+#define MODE_CELT_ONLY          1002
+#define OPUS_SET_FORCE_MODE_REQUEST    11002
+#define OPUS_SET_FORCE_MODE(x) OPUS_SET_FORCE_MODE_REQUEST, __opus_check_int(x)
+
 static int is_valid_ctl(int request)
 {
   /*
@@ -334,6 +340,7 @@ static int is_valid_ctl(int request)
   case OPUS_SET_VBR_REQUEST:
   case OPUS_SET_BANDWIDTH_REQUEST:
   case OPUS_SET_COMPLEXITY_REQUEST:
+  case OPUS_SET_FORCE_MODE_REQUEST:
   case OPUS_SET_INBAND_FEC_REQUEST:
   case OPUS_SET_PACKET_LOSS_PERC_REQUEST:
   case OPUS_SET_DTX_REQUEST:
